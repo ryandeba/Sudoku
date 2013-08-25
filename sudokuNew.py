@@ -1,47 +1,124 @@
-class Sudoku:
-
-    VALID_VALUES = list('1,2,3,4,5,6,7,8,9')
+class SudokuSolver:
 
     def __init__(self, board = None):
         self.solutions = []
-        self.board = ['0'] * 81
-        if board == None or len(board) != 81:
-            board = '0' * 81
-        for i in range(81):
-            self.setBoardIndexToValue(i, board[i])
+        self.board = Board(board)
+
+    def __str__(self):
+        return ''
+
+    def findSolutions(self):
+        if self.board.isSolved():
+            self.solutions.append(Board(self.board.getBoard()))
+            return
+
+        testBoard = Board(self.board.getBoard())
+
+        unsolvedIndexes = testBoard.getUnsolvedIndexes()
+        unsolvedIndexValues = list('1' * len(unsolvedIndexes))
+
+        while len(self.solutions) == 0:
+            self.incremenentBoardUnsolvedIndexes(testBoard, unsolvedIndexes, unsolvedIndexValues)
+            if testBoard.isSolved():
+                self.solutions.append(Board(testBoard.getBoard()))
+                print self.solutions[len(self.solutions) - 1]
+            print testBoard
+        return
+
+    def incremenentBoardUnsolvedIndexes(self, board, unsolvedIndexes, unsolvedIndexValues):
+        for i in range(len(unsolvedIndexes)):
+            currentValue = board.getValueAtIndex(unsolvedIndexes[i])
+            newValue = int(currentValue) + 1
+            if newValue <= 9:
+                board.setIndexToValue(unsolvedIndexes[i], newValue)
+                unsolvedIndexValues[i] = str(newValue)
+                return True
+            board.setIndexToValue(unsolvedIndexes[i], '1')
+            unsolvedIndexValues[i] = '1'
+#TODO: leave it at 9 if it's the last one
+
+    def getPotentialValuesForBoardIndex(self, board, index):
+        potentialValuesForBoardIndex = []
+        for i in list('123456789'):
+            if self.canBoardContainValueAtIndex(board, i, index):
+                potentialValuesForBoardIndex.append(i)
+        return potentialValuesForBoardIndex
+
+    def canBoardContainValueAtIndex(self, board, value, index):
+        #row
+        row = int(index / 9)
+        for i in range(9):
+            if board[(row * 9)+i] == value:
+                return False
+        #col
+        col = index % 9
+        for i in range(9):
+            if board[col] == value:
+                return False
+            col += 9
+        #square
+        squareList = [[0,1,2,9,10,11,18,19,20],[3,4,5,12,13,14,21,22,23],[6,7,8,15,16,17,24,25,26],[27,28,29,36,37,38,45,46,47],[30,31,32,39,40,41,48,49,50],[33,34,35,42,43,44,51,52,53],[54,55,56,63,64,65,72,73,74],[57,58,59,66,67,68,75,76,77],[60,61,62,69,70,71,78,79,80]]
+        for i in range(len(squareList)):
+            if index in squareList[i]:
+                square = i
+                break
+        for i in squareList[square]:
+            if board[i] == value:
+                return False
+
+        return True
+
+class Board:
+
+    VALID_VALUES = list('123456789')
+
+    def __init__(self, board = None):
+        self.loadBoard(board)
 
     def __str__(self):
         result = ''
-        counter = 0
-        for cell in self.board:
-            result += cell
-            counter += 1
-            if counter % 9 == 0:
+        for i in range(81):
+            result += self.getValueAtIndex(i)
+            if (i + 1) % 9 == 0:
                 result += '\n'
         return result
 
-    def setBoardIndexToValue(self, boardIndex, value):
-        self.board[boardIndex] = self.convertToValidValue(value)
+    def getBoard(self):
+        return self.cells
 
-    def getValueAtBoardIndex(self, boardIndex):
-        return self.board[boardIndex]
-        
+    def clearBoard(self):
+       self.cells = ['0'] * 81
+
+    def loadBoard(self, board = None):
+        self.clearBoard()
+        for i in range(len(board or '')):
+            self.setIndexToValue(i, board[i])
+
+    def setIndexToValue(self, boardIndex, value):
+        if boardIndex >= 0 and boardIndex <= 80:
+            self.cells[boardIndex] = self.convertToValidValue(value)
+
+    def getValueAtIndex(self, boardIndex):
+        return self.cells[boardIndex]
+
+    def getUnsolvedIndexes(self):
+        unsolvedIndexes = []
+        for i in range(81):
+            if self.getValueAtIndex(i) not in self.VALID_VALUES:
+                unsolvedIndexes.append(i)
+        return unsolvedIndexes
+
     def convertToValidValue(self, value):
-        return str(value) if str(value) in list('0123456789') else '0'
-
-    def solve(self):
-        if self.isSolved():
-            return True
-        return True
+        return str(value) if str(value) in self.VALID_VALUES else '0'
 
     def isSolved(self):
         return self.areRowsValid() and self.areColumnsValid() and self.areSquaresValid()
 
     def areRowsValid(self):
-        for i in [0,9,18,27,26,45,54,63,72]:
+        for i in [0,9,18,27,36,45,54,63,72]:
             rowValues = []
             for j in range(9):
-                rowValues.append(self.getValueAtBoardIndex(i + j))
+                rowValues.append(self.getValueAtIndex(i + j))
             if '0' in rowValues or (len(rowValues) != len(set(rowValues))):
                 return False
         return True
@@ -50,7 +127,7 @@ class Sudoku:
         for i in range(9):
             columnValues = []
             for j in [0,9,18,27,36,45,54,63,72]:
-                columnValues.append(self.getValueAtBoardIndex(i + j))
+                columnValues.append(self.getValueAtIndex(i + j))
             if '0' in columnValues or (len(columnValues) != len(set(columnValues))):
                 return False
         return True
@@ -59,10 +136,7 @@ class Sudoku:
         for i in [0,3,6,27,30,33,54,57,60]:
             squareValues = []
             for j in [0,1,2,9,10,11,18,19,20]:
-                squareValues.append(self.getValueAtBoardIndex(i + j))
+                squareValues.append(self.getValueAtIndex(i + j))
             if '0' in squareValues or (len(squareValues) != len(set(squareValues))):
                 return False
-        return True
-
-    def canBoardIndexContainValue(self, boardIndex, value):
         return True
