@@ -7,47 +7,22 @@ class SudokuSolver:
     def __str__(self):
         return ''
 
-    def findSolutions(self):
-        if self.board.isSolved():
-            self.solutions.append(Board(self.board.getBoard()))
-            return
-
-        testBoard = Board(self.board.getBoard())
-        unsolvedCells = []
-
-        for i in testBoard.getUnsolvedIndexes():
-            unsolvedCells.append(UnsolvedCell(i, self.getPotentialValuesForBoardIndex(testBoard, i)))
-
-        self.applyUnsolvedCellsToBoard(unsolvedCells, testBoard)
-        if testBoard.isSolved():
-            self.solutions.append(Board(testBoard.getBoard()))
-            print self.solutions[len(self.solutions) - 1]
-
-        while len(self.solutions) == 0:
-            self.incremenentUnsolvedCells(unsolvedCells)
-            self.applyUnsolvedCellsToBoard(unsolvedCells, testBoard)
-            if testBoard.isSolved():
-                self.solutions.append(Board(testBoard.getBoard()))
-                print self.solutions[len(self.solutions) - 1]
-            #print testBoard
+    def solveBoard(self, board):
+        thisBoard = Board(board.getBoard())
+        unsolvedIndexes = thisBoard.getUnsolvedIndexes()
+        if len(unsolvedIndexes) > 0:
+            for i in range(1,11):
+                if i == 10:
+                    return
+                if self.canBoardContainValueAtIndex(thisBoard, str(i), unsolvedIndexes[0]):
+                    thisBoard.setIndexToValue(unsolvedIndexes[0], str(i))
+                    self.solveBoard(thisBoard)
+        if thisBoard.isSolved():
+            self.solutions.append(Board(thisBoard.getBoard()))
         return
 
-    def incremenentUnsolvedCells(self, unsolvedCells):
-        for unsolvedCell in unsolvedCells:
-            unsolvedCell.nextValue();
-            if unsolvedCell.getPotentialValueIndex() != 0:
-                return
-
-    def applyUnsolvedCellsToBoard(self, unsolvedCells, board):
-        for unsolvedCell in unsolvedCells:
-            board.setIndexToValue(unsolvedCell.getIndex(), unsolvedCell.getCurrentValue())
-
-    def getPotentialValuesForBoardIndex(self, board, index):
-        potentialValuesForBoardIndex = []
-        for i in list('123456789'):
-            if self.canBoardContainValueAtIndex(board, i, index):
-                potentialValuesForBoardIndex.append(i)
-        return potentialValuesForBoardIndex
+    def findSolutions(self):
+        self.solveBoard(self.board)
 
     def canBoardContainValueAtIndex(self, board, value, index):
         #row
@@ -72,36 +47,6 @@ class SudokuSolver:
                 return False
 
         return True
-
-class UnsolvedCell:
-    index = 0
-    potentialValues = []
-    potentialValueIndex = 0
-
-    def __init__(self, index, potentialValues):
-        self.index = index
-        self.potentialValues = potentialValues
-
-    def __str__(self):
-        result = 'index: ' + str(self.index) + '\n'
-        result += 'potentialValues: ' + str(self.potentialValues) + '\n'
-        result += 'potentialValueIndex: ' + str(self.potentialValueIndex) + '\n'
-        return result
-
-    def nextValue(self):
-        self.potentialValueIndex += 1
-        if self.potentialValueIndex == len(self.potentialValues):
-            self.potentialValueIndex = 0
-
-    def getPotentialValueIndex(self):
-        return self.potentialValueIndex
-
-    def getIndex(self):
-        return self.index
-
-    def getCurrentValue(self):
-        return self.potentialValues[self.potentialValueIndex]
-
 
 class Board:
 
