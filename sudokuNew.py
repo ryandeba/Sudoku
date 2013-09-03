@@ -7,8 +7,10 @@ class SudokuSolver:
     def __str__(self):
         return ''
 
-    def solveBoard(self, board):
+    def solveBoard(self, board, numberOfSolutionsToFind):
         thisBoard = Board(board.getBoard())
+        if thisBoard.isSolveable() == False:
+            return
         unsolvedIndexes = thisBoard.getUnsolvedIndexes()
         if len(unsolvedIndexes) > 0:
             for i in range(1,11):
@@ -16,13 +18,21 @@ class SudokuSolver:
                     return
                 if self.canBoardContainValueAtIndex(thisBoard, str(i), unsolvedIndexes[0]):
                     thisBoard.setIndexToValue(unsolvedIndexes[0], str(i))
-                    self.solveBoard(thisBoard)
+                    self.solveBoard(thisBoard, numberOfSolutionsToFind)
+                    if len(self.solutions) >= numberOfSolutionsToFind:
+                        return
         if thisBoard.isSolved():
             self.solutions.append(Board(thisBoard.getBoard()))
         return
 
-    def findSolutions(self):
-        self.solveBoard(self.board)
+    def findUpToNSolutions(self, n):
+        self.solveBoard(self.board, n)
+
+    def getFirstSolution(self):
+        self.findUpToNSolutions(1)
+        if len(self.solutions) > 0:
+            return self.solutions[0]
+        return '' 
 
     def canBoardContainValueAtIndex(self, board, value, index):
         #row
@@ -59,8 +69,8 @@ class Board:
         result = ''
         for i in range(81):
             result += self.getValueAtIndex(i)
-            if (i + 1) % 9 == 0:
-                result += '\n'
+#            if (i + 1) % 9 == 0:
+#                result += '\n'
         return result
 
     def getBoard(self):
@@ -92,9 +102,42 @@ class Board:
         return str(value) if str(value) in self.VALID_VALUES else '0'
 
     def isSolved(self):
+        return self.areRowsSolved() and self.areColumnsSolved() and self.areSquaresSolved()
+
+    def isSolveable(self):
         return self.areRowsValid() and self.areColumnsValid() and self.areSquaresValid()
 
     def areRowsValid(self):
+        for i in [0,9,18,27,36,45,54,63,72]:
+            rowValues = []
+            for j in range(9):
+                if self.getValueAtIndex(i + j) != '0':
+                    rowValues.append(self.getValueAtIndex(i + j))
+            if len(rowValues) != len(set(rowValues)):
+                return False
+        return True
+
+    def areColumnsValid(self):
+        for i in range(9):
+            columnValues = []
+            for j in [0,9,18,27,36,45,54,63,72]:
+                if self.getValueAtIndex(i + j) != '0':
+                    columnValues.append(self.getValueAtIndex(i + j))
+            if '0' in columnValues or (len(columnValues) != len(set(columnValues))):
+                return False
+        return True
+
+    def areSquaresValid(self):
+        for i in [0,3,6,27,30,33,54,57,60]:
+            squareValues = []
+            for j in [0,1,2,9,10,11,18,19,20]:
+                if self.getValueAtIndex(i + j) != '0':
+                    squareValues.append(self.getValueAtIndex(i + j))
+            if '0' in squareValues or (len(squareValues) != len(set(squareValues))):
+                return False
+        return True
+
+    def areRowsSolved(self):
         for i in [0,9,18,27,36,45,54,63,72]:
             rowValues = []
             for j in range(9):
@@ -103,7 +146,7 @@ class Board:
                 return False
         return True
 
-    def areColumnsValid(self):
+    def areColumnsSolved(self):
         for i in range(9):
             columnValues = []
             for j in [0,9,18,27,36,45,54,63,72]:
@@ -112,7 +155,7 @@ class Board:
                 return False
         return True
 
-    def areSquaresValid(self):
+    def areSquaresSolved(self):
         for i in [0,3,6,27,30,33,54,57,60]:
             squareValues = []
             for j in [0,1,2,9,10,11,18,19,20]:
