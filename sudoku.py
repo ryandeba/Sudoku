@@ -11,16 +11,15 @@ class SudokuSolver:
         thisBoard = Board(board.getBoard())
         if thisBoard.isSolveable() == False:
             return
-        unsolvedIndexes = thisBoard.getUnsolvedIndexes()
-        if len(unsolvedIndexes) > 0:
-            for i in range(1,11):
-                if i == 10:
+        unsolvedIndexesAndSolutions = self.getUnsolvedIndexesAndPossibleValuesForBoard(thisBoard)
+        if len(unsolvedIndexesAndSolutions) > 0:
+            unsolvedIndex = unsolvedIndexesAndSolutions[0]['index']
+            possibleValues = unsolvedIndexesAndSolutions[0]['possibleValues']
+            for i in possibleValues:
+                thisBoard.setIndexToValue(unsolvedIndex, str(i))
+                self.solveBoard(thisBoard, numberOfSolutionsToFind)
+                if len(self.solutions) >= numberOfSolutionsToFind:
                     return
-                if self.canBoardContainValueAtIndex(thisBoard, str(i), unsolvedIndexes[0]):
-                    thisBoard.setIndexToValue(unsolvedIndexes[0], str(i))
-                    self.solveBoard(thisBoard, numberOfSolutionsToFind)
-                    if len(self.solutions) >= numberOfSolutionsToFind:
-                        return
         if thisBoard.isSolved():
             self.solutions.append(Board(thisBoard.getBoard()))
         return
@@ -58,6 +57,18 @@ class SudokuSolver:
 
         return True
 
+    def getUnsolvedIndexesAndPossibleValuesForBoard(self, board):
+        unsolvedIndexesAndSolutions = []
+
+        unsolvedIndexes = board.getUnsolvedIndexes()
+        for index in unsolvedIndexes:
+            possibleValuesForThisIndex = []
+            for i in range(1,10):
+                if self.canBoardContainValueAtIndex(board, str(i), index):
+                    possibleValuesForThisIndex.append(str(i))
+            unsolvedIndexesAndSolutions.append({'index': index, 'possibleValues': possibleValuesForThisIndex})
+        return sorted(unsolvedIndexesAndSolutions, key = lambda k: len(k['possibleValues']))
+
 class Board:
 
     VALID_VALUES = list('123456789')
@@ -69,9 +80,17 @@ class Board:
         result = ''
         for i in range(81):
             result += self.getValueAtIndex(i)
-#            if (i + 1) % 9 == 0:
-#                result += '\n'
         return result
+
+    def prettyPrint(self):
+        result = ''
+        for i in range(81):
+            result += self.getValueAtIndex(i)
+            if (i + 1) % 9 == 0:
+                result += '\n'
+        return result
+
+   
 
     def getBoard(self):
         return self.cells
