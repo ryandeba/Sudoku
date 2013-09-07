@@ -83,57 +83,45 @@ class Board:
     def isSolveable(self):
         return self.areRowsValid() and self.areColumnsValid() and self.areSquaresValid()
 
-    def isValuePossibleAtIndex(self, value, index):
-        #row
-        row = int(index / 9)
-        for i in range(9):
-            if self.getValueAtIndex((row * 9) + i) == value:
-                return False
-        #col
-        col = index % 9
-        for i in range(9):
-            if self.getValueAtIndex(col) == value:
-                return False
-            col += 9
-        #square
-        for i in range(len(self.SQUARES)):
-            if index in self.SQUARES[i]:
-                square = i
-                break
-        for i in self.SQUARES[square]:
-            if self.getValueAtIndex(i) == value:
-                return False
-        return True
-
-    def getUnsolvedIndexesAndPossibleValues(self):
-        unsolvedIndexesAndSolutions = []
-
-        unsolvedIndexes = self.getUnsolvedIndexes()
-        for index in unsolvedIndexes:
-            possibleValuesForThisIndex = []
-            for i in range(1,10):
-                if self.isValuePossibleAtIndex(str(i), index):
-                    possibleValuesForThisIndex.append(str(i))
-            if len(possibleValuesForThisIndex) == 0:
-                return [] #TODO: figure out a less hacky way to improve performance
-            unsolvedIndexesAndSolutions.append({'index': index, 'possibleValues': possibleValuesForThisIndex})
-        return sorted(unsolvedIndexesAndSolutions, key = lambda k: len(k['possibleValues']))
-
     def getNextUnsolvedIndexAndPossibleValues(self):
         unsolvedIndexesAndSolutions = []
 
         unsolvedIndexes = self.getUnsolvedIndexes()
         for index in unsolvedIndexes:
-            possibleValuesForThisIndex = []
-            for i in range(1,10):
-                if self.isValuePossibleAtIndex(str(i), index):
-                    possibleValuesForThisIndex.append(str(i))
+            possibleValuesForThisIndex = self.getPossibleValuesForIndex(index)
             if len(possibleValuesForThisIndex) == 0:
-                return {'index': -1, 'possibleValues' : []}
+                return {'index': -1, 'possibleValues' : possibleValuesForThisIndex}
             if len(possibleValuesForThisIndex) == 1:
                 return {'index': index, 'possibleValues' : possibleValuesForThisIndex}
             unsolvedIndexesAndSolutions.append({'index': index, 'possibleValues': possibleValuesForThisIndex})
         return sorted(unsolvedIndexesAndSolutions, key = lambda k: len(k['possibleValues']))[0] if len(unsolvedIndexesAndSolutions) > 0 else {'index': -1}
+
+    def getPossibleValuesForIndex(self, index):
+        possibleValues = self.VALID_VALUES[:]
+
+        row = int(index / 9)
+        for i in range(9):
+            thisValue = self.getValueAtIndex((row * 9) + i)
+            if thisValue in possibleValues:
+                possibleValues.pop(possibleValues.index(thisValue))
+
+        col = index % 9
+        for i in range(9):
+            thisValue = self.getValueAtIndex(col)
+            col += 9
+            if thisValue in possibleValues:
+                possibleValues.pop(possibleValues.index(thisValue))
+
+        for i in range(len(self.SQUARES)):
+            if index in self.SQUARES[i]:
+                square = i
+                break
+        for i in self.SQUARES[square]:
+            thisValue = self.getValueAtIndex(i)
+            if thisValue in possibleValues:
+                possibleValues.pop(possibleValues.index(thisValue))
+        
+        return possibleValues
 
     def areRowsValid(self):
         for i in [0,9,18,27,36,45,54,63,72]:
@@ -191,3 +179,7 @@ class Board:
             if '0' in squareValues or (len(squareValues) != len(set(squareValues))):
                 return False
         return True
+
+if __name__ == '__main__':
+    x = SudokuSolver('800000000003600000070090200050007000000045700000100030001000068008500010090000400')
+    x.getFirstSolution()
