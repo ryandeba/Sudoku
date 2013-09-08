@@ -10,7 +10,7 @@ class SudokuSolver:
     def solveBoard(self, board, numberOfSolutionsToFind):
         thisBoard = Board(board.getBoard())
         nextUnsolvedIndexAndPossibleSolutions = thisBoard.getNextUnsolvedIndexAndPossibleValues()
-        if (nextUnsolvedIndexAndPossibleSolutions['index']) > 0:
+        if (nextUnsolvedIndexAndPossibleSolutions['index']) >= 0:
             unsolvedIndex = nextUnsolvedIndexAndPossibleSolutions['index']
             possibleValues = nextUnsolvedIndexAndPossibleSolutions['possibleValues']
             for i in possibleValues:
@@ -29,7 +29,7 @@ class SudokuSolver:
         self.findUpToNSolutions(1)
         if len(self.solutions) > 0:
             return self.solutions[0]
-        return '' 
+        return Board()
 
 class Board:
 
@@ -48,9 +48,13 @@ class Board:
     def prettyPrint(self):
         result = ''
         for i in range(81):
-            result += self.getValueAtIndex(i)
+            result += self.getValueAtIndex(i) + ' '
             if (i + 1) % 9 == 0:
                 result += '\n'
+            elif (i + 1) % 3 == 0:
+                result += '| '
+            if i == 26 or i == 53:
+                result += '- - - | - - - | - - -\n'
         return result
 
     def getBoard(self):
@@ -182,4 +186,7 @@ class Board:
 
 if __name__ == '__main__':
     x = SudokuSolver('800000000003600000070090200050007000000045700000100030001000068008500010090000400')
-    x.getFirstSolution()
+    #x = SudokuSolver('000005080000601043000000000010500000000106000300000005530000061000000004000000000')
+    #x = SudokuSolver('003020600900305001001806400008102900700000008006708200002609500800203009005010300')
+    print x.board.prettyPrint()
+    print x.getFirstSolution().prettyPrint()
