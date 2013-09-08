@@ -9,6 +9,8 @@ class SudokuSolver:
 
     def solveBoard(self, board, numberOfSolutionsToFind):
         thisBoard = Board(board.getBoard())
+        if thisBoard.isSolveable() == False:
+            return
         nextUnsolvedIndexAndPossibleSolutions = thisBoard.getNextUnsolvedIndexAndPossibleValues()
         if (nextUnsolvedIndexAndPossibleSolutions['index']) >= 0:
             unsolvedIndex = nextUnsolvedIndexAndPossibleSolutions['index']
