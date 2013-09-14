@@ -1,3 +1,12 @@
+import random
+
+class SudokuMaker:
+
+     def getNewPuzzle(self):
+        sudokuSolver = SudokuSolver()
+        sudokuSolver.solveBoard(board = Board(), numberOfSolutionsToFind = 1, solveInRandomOrder = True)
+        return sudokuSolver.solutions[0]
+
 class SudokuSolver:
 
     def __init__(self, board = None):
@@ -7,7 +16,7 @@ class SudokuSolver:
     def __str__(self):
         return ''
 
-    def solveBoard(self, board, numberOfSolutionsToFind):
+    def solveBoard(self, board, numberOfSolutionsToFind, solveInRandomOrder = False):
         thisBoard = Board(board.getBoard())
         if thisBoard.isSolveable() == False:
             return
@@ -15,9 +24,11 @@ class SudokuSolver:
         if (nextUnsolvedIndexAndPossibleSolutions['index']) >= 0:
             unsolvedIndex = nextUnsolvedIndexAndPossibleSolutions['index']
             possibleValues = nextUnsolvedIndexAndPossibleSolutions['possibleValues']
+            if solveInRandomOrder:
+                random.shuffle(possibleValues)
             for i in possibleValues:
                 thisBoard.setIndexToValue(unsolvedIndex, str(i))
-                self.solveBoard(thisBoard, numberOfSolutionsToFind)
+                self.solveBoard(thisBoard, numberOfSolutionsToFind, solveInRandomOrder)
                 if len(self.solutions) >= numberOfSolutionsToFind:
                     return
         if thisBoard.isSolved():
@@ -119,6 +130,7 @@ class Board:
         return self.areRowsSolved() and self.areColumnsSolved() and self.areSquaresSolved()
 
     def isSolveable(self):
+        #TODO: also make sure that all unsolved indexes have at least 1 possible value
         return self.areRowsValid() and self.areColumnsValid() and self.areSquaresValid()
 
     def getNextUnsolvedIndexAndPossibleValues(self):
