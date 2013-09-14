@@ -25,5 +25,9 @@ class TestBoard(unittest.TestCase):
         self.assertEqual(self.board.convertToValidValue('4'), '4')
         self.assertEqual(self.board.convertToValidValue(4), '4')
 
+    def test_isSolveable(self):
+        self.assertEqual(Board().isSolveable(), True)
+        self.assertEqual(Board('99').isSolveable(), False)
+
 if __name__ == '__main__':
     unittest.main()
