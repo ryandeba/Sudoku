@@ -31,7 +31,7 @@ class SudokuSolver:
         self.findUpToNSolutions(1)
         if len(self.solutions) > 0:
             return self.solutions[0]
-        return Board()
+        return ''
 
 class Board:
 
