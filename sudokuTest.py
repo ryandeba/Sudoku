@@ -52,9 +52,9 @@ class TestBoard(unittest.TestCase):
 		self.board = Board("11")
 		self.assertEquals(False, self.board.areRowsValid())
 
-    def test_isSolveable(self):
-        self.assertEqual(Board().isSolveable(), True)
-        self.assertEqual(Board('99').isSolveable(), False)
+	def test_isSolveable(self):
+		self.assertEqual(Board().isSolveable(), True)
+		self.assertEqual(Board('99').isSolveable(), False)
 
 if __name__ == '__main__':
 	unittest.main()
